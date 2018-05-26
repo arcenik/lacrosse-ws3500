@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="5">
+    <title>WS3500</title>
+    <style media="screen">
+
+    body {
+      background-color: #202020;
+      color: #e0e8e0;
+      font-family: monospace;
+    }
+
+    body div {
+      width: auto;
+      background-color: #303030;
+      padding: 10px;
+      margin: 20px;
+      border: 1px solid #f1f1f1;
+      border-radius: 10px;
+    }
+
+    table {
+      width: auto;
+      background-color: #404040;
+    }
+
+    tr {
+      margin: 10px;
+      background-color: #202060;
+    }
+
+    td {
+      padding: 10px;
+    }
+
+    .error {
+      background-color: #602020;
+      color: #f0b0b0;
+    }
+
+    .nodata {
+      background-color: #606020;
+      color: #f0f0b0;
+    }
+
+    </style>
+  </head>
+  <body>
+    {% if data != None %}
+      <div class="data">
+        <h1 class="data">Last Measures :</h1>
+        <table>
+          <tr>
+            <td>Internal</td>
+            <td>
+              {{ "%.1f"|format(data['ws3500_internal_temp']['value']|float) }} &deg;
+              / Humidity {{ data['ws3500_internal_humidity']['value'] }} %
+            </td>
+          </tr>
+          <tr>
+            <td>External</td>
+            <td>
+              {{ "%.1f"|format(data['ws3500_external_temp']['value']|float) }} &deg;
+              / Humidity {{ data['ws3500_external_humidity']['value'] }} %
+            </td>
+          </tr>
+          <tr>
+            <td>Dew Point</td>
+            <td>{{ "%.1f"|format(data['ws3500_dewpoint']['value']|float) }} &deg;</td>
+          </tr>
+          <tr>
+            <td>Pressure</td>
+            <td>{{ data['ws3500_pressure']['value'] }} hPa</td>
+          </tr>
+          <tr>
+            <td>Data retreived</td>
+            <td>
+              On {{ data['ws3500_fetch_time']['value'] | datetime }}
+              In {{ "%.2f"|format(data['ws3500_fetch_duration']['value']|float) }} seconds
+            </td>
+          </tr>
+        </table>
+      </div>
+    {% else %}
+      <div class="nodata">
+        <h1 class="nodata">No data</h1>
+      </div>
+    {% endif %}
+    {% if error != None %}
+      <div class="error">
+        <h1 class="error">Last error : </h1>
+        <p class="message">{{ error }}</p>
+      </div>
+    {% endif %}
+    <div class="copyright">
+      @2018 François Scala
+    </div>
+  </body>
+</html>
