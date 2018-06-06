@@ -40,11 +40,25 @@ $ python2 daemon.py --device /dev/ttyUSB0 -P 1234 -H 0.0.0.0
  * Running on http://0.0.0.0:1234/ (Press CTRL+C to quit)
 ```
 
-The status page :
+### Fetch Duration
+
+Due to the protocol, the fetch duration is quite chaotic. The length of the initialize "U" buffer impact greatly on stability and reliability of operation.
+
+With a "U"\*150 buffer, I obtain quite stable fetch duration, oscillating mainly between 3.6 and 6.4 seconds.
+
+![status page](.doc/fetch-duration.png?raw=true)
+
+But each day, a deviation is observed in the early hours. like here at 6am where fetch duration deviated to two minutes.
+
+![status page](.doc/fetch-duration-6am.png?raw=true)
+
+### Status Page
+
+The status page allow you to see the last fetched data. It looks like this :
 
 ![status page](.doc/cap-status.png?raw=true)
 
-If there is an error :
+If there is any problem, you obtain an error message instead :
 
 ![status page with an error](.doc/cap-error.png?raw=true)
 
