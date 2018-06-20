@@ -100,7 +100,12 @@ class WS3500():
 
                 if readdata == readdata2:
                     if readdata == chr(0) * number or readdata == "":
-                        self.logger.warning("_read_safe : only zeros, initialize() again")
+                        self.logger.warning("_read_safe : only 0x00, initialize() again")
+                        self._init = False
+                        time.sleep(0.1)
+                        self._initialize()
+                    elif readdata == chr(255) * number:
+                        self.logger.warning("_read_safe : only 0xFF, initialize() again")
                         self._init = False
                         time.sleep(0.1)
                         self._initialize()
