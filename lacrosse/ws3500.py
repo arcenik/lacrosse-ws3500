@@ -37,7 +37,7 @@ class WS3500():
 
     def _initialize(self):
         self.logger.info("initialize()")
-        buff = "U"*150
+        buff = "U"*100
 
         retries = 10
         success = False
@@ -89,38 +89,39 @@ class WS3500():
         self.logger.info("_read_safe({a},{n})".format(a=address,n=number))
         readdata = ""
         readdata2 = ""
-        nb_tests = 2
+        self.count_failed_differs = 0
+        self.count_failed_zeroes = 0
+        self.count_failed_ones = 0
         for j in range(MAXRETRIES):
+            self.count_retries = j
+            # self._init = False
+            # self._initialize()
             self._write_data(address, 0, None, tab=1)
             readdata = self._read_data(number, tab=1)
 
-            if nb_tests == 2:
-                self._write_data(address, 0, None, tab=1)
-                readdata2 = self._read_data(number, tab=1)
+            self._write_data(address, 0, None, tab=1)
+            readdata2 = self._read_data(number, tab=1)
 
-                if readdata == readdata2:
-                    if readdata == chr(0) * number or readdata == "":
-                        self.logger.warning("_read_safe : only 0x00, initialize() again")
-                        self._init = False
-                        time.sleep(0.1)
-                        self._initialize()
-                    elif readdata == chr(255) * number:
-                        self.logger.warning("_read_safe : only 0xFF, initialize() again")
-                        self._init = False
-                        time.sleep(0.1)
-                        self._initialize()
-                    else:
-                        break
-                else:
-                    self.logger.warning("_read_safe : not identical, try again")
-            else:
+            if readdata == readdata2:
                 if readdata == chr(0) * number or readdata == "":
-                    self.logger.warning("_read_safe : only zeros")
+                    self.logger.warning("_read_safe : only 0x00, initialize() again")
+                    self.count_failed_zeroes += 1
+                    time.sleep(0.1)
+                elif readdata == chr(255) * number:
+                    self.logger.warning("_read_safe : only 0xFF, initialize() again")
+                    self.count_failed_ones += 1
+                    time.sleep(0.1)
                 else:
                     break
+            else:
+                self.logger.warning("_read_safe : not identical, try again")
+                self.count_failed_differs += 1
+
+            self._init = False
+            self._initialize()
 
         if j == MAXRETRIES:
-            return -1
+            return None
 
         return readdata
 

@@ -30,8 +30,12 @@ template = {
     "ws3500_internal_humidity":{"help":"Internal Humitidy",    "type":"gauge", "value":""},
     "ws3500_dewpoint":         {"help":"Dew Point",            "type":"gauge", "value":""},
     "ws3500_pressure":         {"help":"Pressure",             "type":"gauge", "value":""},
-    "ws3500_fetch_duration":   {"help":"Time taken to fetch data", "type":"gauge", "value":""},
-    "ws3500_fetch_time":       {"help":"Timestamp when data was fetched", "type":"gauge", "value":""}
+    "ws3500_fetch_duration":   {"help":"Time taken to fetch data",                            "type":"gauge", "value":""},
+    "ws3500_fetch_time":       {"help":"Timestamp when data was fetched",                     "type":"gauge", "value":""},
+    "ws3500_retries_count":    {"help":"Number of retries",                                   "type":"gauge", "value":""},
+    "ws3500_fails_differ_count": {"help":"Number of read failed due to differents values",    "type":"gauge", "value":""},
+    "ws3500_fails_zeroes_count": {"help":"Number of read failed due to only zeroes returned", "type":"gauge", "value":""},
+    "ws3500_fails_ones_count": {"help":"Number of read failed due to only ones returned",     "type":"gauge", "value":""}
 }
 
 ################################################################################
@@ -92,6 +96,9 @@ class ws3500_fetcher(threading.Thread):
                     # self.ws = WS3500(self.ser, logger=self.logger)
                     self.ws = WS3500(self.ser)
 
+                self.ws._init = False
+                self.ws._initialize()
+
                 newdata = template
                 t1 = time.time()
 
@@ -101,6 +108,11 @@ class ws3500_fetcher(threading.Thread):
                 newdata["ws3500_internal_humidity"]["value"] = self.ws.humidity_int()
                 newdata["ws3500_dewpoint"]["value"] = self.ws.dewpoint()
                 newdata["ws3500_pressure"]["value"] = self.ws.rel_pressure()
+
+                newdata["ws3500_retries_count"]["value"] = self.ws.count_retries
+                newdata["ws3500_fails_differ_count"]["value"] = self.ws.count_failed_differs
+                newdata["ws3500_fails_zeroes_count"]["value"] = self.ws.count_failed_zeroes
+                newdata["ws3500_fails_ones_count"]["value"] = self.ws.count_failed_ones
 
                 t2 = time.time()
                 ellapsed = t2-t1
