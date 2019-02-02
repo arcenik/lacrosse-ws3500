@@ -37,7 +37,7 @@ class WS3500():
 
     def _initialize(self):
         self.logger.info("initialize()")
-        buff = "U"*100
+        buff = "U"*85
 
         retries = 10
         success = False
