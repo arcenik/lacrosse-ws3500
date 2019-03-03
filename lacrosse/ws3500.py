@@ -46,7 +46,7 @@ class WS3500():
         success = False
         while retries > 0:
 
-            self.ser.write(buff)
+            self.ser.write(buff.encode())
             self.logger.info("initialize() first write(buf) completed")
 
             self.logger.debug("-DTR")
@@ -81,7 +81,7 @@ class WS3500():
             self.logger.warning("initialize timeout 2")
             return 0
 
-        self.ser.write(buff)
+        self.ser.write(buff.encode())
         self.logger.info("initialize() second write(buf) completed")
 
         self._init = True
