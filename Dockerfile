@@ -1,4 +1,4 @@
-FROM python:2.7-stretch
+FROM python:3.7-stretch
 
 RUN mkdir -vp /opt/app
 WORKDIR /opt/app
@@ -11,4 +11,4 @@ ENV PORT 5000
 
 COPY . /opt/app
 
-CMD ["bash", "-cx", "python2 daemon.py --host ${HOST} --port ${PORT}"]
+CMD ["bash", "-cx", "python3 daemon.py --host ${HOST} --port ${PORT}"]

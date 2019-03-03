@@ -1,1 +1,1 @@
-from ws3500 import WS3500
+from .ws3500 import WS3500

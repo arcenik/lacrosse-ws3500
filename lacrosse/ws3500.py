@@ -13,8 +13,10 @@ UNSETBIT = 0x32
 
 DEBUG = 0
 
+
 def string2hex(s):
-    return " ".join(map(lambda(x):hex(ord(x)), s))
+    return " ".join(map(lambda x: hex(ord(x)), s))
+
 
 class WS3500():
 
@@ -29,7 +31,8 @@ class WS3500():
             self.logger.setLevel(logging.ERROR)
 
             handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+            formatter = logging.Formatter(
+                '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
         else:
@@ -43,7 +46,7 @@ class WS3500():
         success = False
         while retries > 0:
 
-            self.ser.write(buff)
+            self.ser.write(buff.encode())
             self.logger.info("initialize() first write(buf) completed")
 
             self.logger.debug("-DTR")
@@ -78,7 +81,7 @@ class WS3500():
             self.logger.warning("initialize timeout 2")
             return 0
 
-        self.ser.write(buff)
+        self.ser.write(buff.encode())
         self.logger.info("initialize() second write(buf) completed")
 
         self._init = True
@@ -86,7 +89,7 @@ class WS3500():
         return 1
 
     def _read_safe(self, address, number):
-        self.logger.info("_read_safe({a},{n})".format(a=address,n=number))
+        self.logger.info("_read_safe({a},{n})".format(a=address, n=number))
         readdata = ""
         readdata2 = ""
         self.count_failed_differs = 0
@@ -104,11 +107,13 @@ class WS3500():
 
             if readdata == readdata2:
                 if readdata == chr(0) * number or readdata == "":
-                    self.logger.warning("_read_safe : only 0x00, initialize() again")
+                    self.logger.warning(
+                        "_read_safe : only 0x00, initialize() again")
                     self.count_failed_zeroes += 1
                     time.sleep(0.1)
                 elif readdata == chr(255) * number:
-                    self.logger.warning("_read_safe : only 0xFF, initialize() again")
+                    self.logger.warning(
+                        "_read_safe : only 0xFF, initialize() again")
                     self.count_failed_ones += 1
                     time.sleep(0.1)
                 else:
@@ -139,7 +144,8 @@ class WS3500():
 
             self._read_last_byte_seq(tab=tab+1)
 
-            self.logger.info("_read_data : {raw}".format(raw=string2hex(readdata)))
+            self.logger.info("_read_data : {raw}".format(
+                raw=string2hex(readdata)))
 
             return readdata
         else:
@@ -147,15 +153,15 @@ class WS3500():
             return ""
 
     def _write_data(self, address, number, writedata, tab=0):
-        self.logger.info("_write_data({a},{n})".format(a=address,n=number))
+        self.logger.info("_write_data({a},{n})".format(a=address, n=number))
         command = 0xa0
         i = -1
 
         self._write_byte(command, tab=tab+1)
         self._write_byte(address/256, tab=tab+1)
-        self._write_byte(address%256, tab=tab+1)
+        self._write_byte(address % 256, tab=tab+1)
 
-        if writedata != None:
+        if writedata is not None:
             for i in range(number):
                 self._write_byte(ord(writedata[i]), tab=tab+1)
 
@@ -202,7 +208,8 @@ class WS3500():
         self.logger.debug("+DTR")
         self.ser.setDTR(1)
 
-        self.logger.debug("_read_bit result {res:d}".format(res=int(not status)))
+        self.logger.debug(
+            "_read_bit result {res:d}".format(res=int(not status)))
 
         return int(not status)
 
@@ -227,12 +234,14 @@ class WS3500():
             byte *= 2
             byte += self._read_bit(tab=tab+1)
 
-        self.logger.debug("_read_byte result {d} ({h})".format(d=byte,h=hex(byte)))
+        self.logger.debug(
+            "_read_byte result {d} ({h})".format(d=byte, h=hex(byte)))
 
         return byte
 
     def _write_byte(self, byte, tab=0):
         self.logger.debug("_write_byte({b})".format(b=byte))
+        byte = int(byte)
         for i in range(8):
             self._write_bit(byte & 0x80, tab=tab+1)
             byte <<= 1
@@ -252,145 +261,25 @@ class WS3500():
         else:
             return 0
 
-    # def load_main_data(self):
-    #     """
-    #     Loads all the data from the device.
-    #     """
-    #     if not self._init:
-    #         if not self._initialize():
-    #             return ""
-    #
-    #     ADDR_BASE = 0x00
-    #     TOTAL_DATA_LEN = 0x16F
-    #     data_read = self._read_safe(ADDR_BASE, TOTAL_DATA_LEN)
-    #
-    #     return data_read
-
-    # def read_history_info(self):
-    #     if not self._init:
-    #         if not self._initialize():
-    #             return ""
-    #     address = 0x6B2 - 2
-    #     l = 12
-    #     data_read = self._read_safe(address, l)
-    #
-    #     debug(string2hex(data_read), 1)
-    #
-    #     data = []
-    #
-    #     interval = (ord(data_read[1]) & 0xF) * 256 + ord(data_read[0]) + 1
-    #     data.append(interval)
-    #     countdown = ord(data_read[2])*16 + (ord(data_read[1]) >> 4) + 1
-    #     data.append(countdown)
-    #
-    #     jour = (ord(data_read[0]) >> 4) * 10 + (ord(data_read[0]) & 0xF)
-    #     mois = (ord(data_read[1]) >> 4) * 10 + (ord(data_read[1]) & 0xF)
-    #     annee = 2000 + (ord(data_read[2]) >> 4) * 10 + (ord(data_read[2]) & 0xF)
-    #     data.append((jour, mois, annee))
-    #     no_records = ord(data_read[9])
-    #     data.append(no_records)
-    #
-    #     return data
-
-    # def read_history_record(self, data, record_no):
-    #     record = data
-    #
-    #     minute = ((ord(record[0]) & 0xf0) >> 4)* 10 + (ord(record[0]) & 0xf)
-    #     if minute >= 60:
-    #         return None
-    #     heure = ((ord(record[1]) & 0xf0) >> 4) * 10 + (ord(record[1]) & 0xf)
-    #     jour = ((ord(record[2]) & 0xf0) >> 4) * 10 + (ord(record[2]) & 0xf)
-    #     mois = ((ord(record[3]) & 0xf0) >> 4) * 10 + (ord(record[3]) & 0xf)
-    #     annee = 2000 + ((ord(record[4]) & 0xf0) >> 4) * 10 + (ord(record[4]) & 0xf)
-    #
-    #     temperature_int = ((ord(record[5]) & 0xf0) >> 4) * 10 + (ord(record[5]) & 0xf)
-    #     temperature_int += (ord(record[6]) & 0xf) * 100 - 400
-    #     ##temperature_int /= 10.0
-    #     temperature_ext = (ord(record[6]) & 0xf0) >> 4
-    #     temperature_ext += ((ord(record[7]) & 0xf0) >> 4) * 100 + (ord(record[7]) & 0xf) * 10 - 400
-    #     ##temperature_ext /= 10.0
-    #     pressure = ((ord(record[8]) & 0xf0) >> 4) * 10 + (ord(record[8]) & 0xf)
-    #     pressure += ((ord(record[9]) & 0xf0) >> 4) * 1000 + (ord(record[9]) & 0xf) * 100
-    #     pressure += (ord(record[10]) & 0xf) * 10000
-    #     ##pressure /= 10.0
-    #     humidity_int = (ord(record[10]) & 0xf0) >> 4
-    #     humidity_int += (ord(record[11]) & 0xf) * 10
-    #     humidity_ext = (ord(record[11]) & 0xf0) >> 4
-    #     humidity_ext += (ord(record[12]) & 0xf) * 10
-    #     raincount = ord(record[12]) >> 4
-    #     raincount += ord(record[13]) * 16
-    #     windspeed = (ord(record[15]) & 0xf) * 256 + ord(record[14])
-    #     ##windspeed /= 10.0
-    #     if (ord(record[17]) & 0xf) != 1 or ord(record[16]) != 0xFE:
-    #         windgust = (ord(record[17]) & 0xf) * 256 + ord(record[16])
-    #         ##windgust /= 10.0
-    #     else:
-    #         windgust = -1
-    #     winddir_degrees = ((ord(record[15]) & 0xF0)>> 4) * 22.5
-    #
-    #     return ["%04i-%02i-%02i %02i:%02i" % (annee, mois, jour, heure, minute), temperature_int, temperature_ext, pressure, humidity_int, humidity_ext, raincount, windspeed, winddir_degrees]
-
-    # def read_history(self, delai_dernier_releve = 0):
-    #     if not self._init:
-    #         if not self._initialize():
-    #             return ""
-    #     l = 0x7fff - HISTORY_BUFFER_ADR + 1
-    #     nb = 12 * 5 * 20
-    #     l = 18 * nb
-    #     nb_enreg_max = 1750
-    #     address_max = HISTORY_BUFFER_ADR + nb_enreg_max * 18 - 1
-    #     address = HISTORY_BUFFER_ADR
-    #     end_of_data = False
-    #     data = []
-    #     j = 0
-    #     last_record = None
-    #     while not end_of_data and j < MAXRETRIES:
-    #         nb_ok = 0
-    #         j += 1
-    #         debug("read history from address : %s" % hex(address), 1)
-    #         if l + address > address_max:
-    #             l = address_max - address + 1
-    #         if l > 0:
-    #             data_read = self._read_safe(address, l)
-    #
-    #         if data_read:
-    #             for i in range(nb):##range(HISTORY_REC_NO):
-    #                 try:
-    #                     record = None
-    #                     record = self.read_history_record(data_read[i*18:(i+1)*18], i)
-    #                 except Exception, e:
-    #                     print "exception :", e, i, string2hex(data_read[i*18:(i+1)*18])
-    #                     record = None
-    #                 if record is None:
-    #                     end_of_data = False
-    #                     break
-    #                 else:
-    #                     last_record = record
-    #                     nb_ok += 1
-    #                 data.append(record)
-    #
-    #             address += 18 * nb_ok
-    #             if last_record and delai_dernier_releve > 0 :
-    #                 try:
-    #                     if DateTime.DateTimeFrom(last_record[0]) + DateTime.RelativeDateTime(minutes = delai_dernier_releve) > DateTime.now():
-    #                         end_of_data = True
-    #                 except:
-    #                     pass
-    #         else:
-    #             debug("no data read", 1)
-    #             end_of_data = False
-    #
-    #     return data
-
     def _getTemp(self, address):
         # 12.3 -> [1] 0x....1111 [0] 0x22223333
         data_read = self._read_safe(address, 2)
-        return ((ord(data_read[1]) & 0xF) * 10 + (ord(data_read[0]) >> 4) + (ord(data_read[0]) & 0xF) / 10.0) - 40.0
+        return (
+            ((ord(data_read[1]) & 0xF) * 10)
+            + (ord(data_read[0]) >> 4)
+            + ((ord(data_read[0]) & 0xF) / 10.0)
+            - 40.0
+        )
 
     def _getTemp2(self, address):
         # 12.3 -> [1] 0x11112222   [0] 0x3333....
         data_read = self._read_safe(address, 2)
-        return (ord(data_read[1]) >> 4) * 10 + (ord(data_read[1] )& 0xF) + (ord(data_read[0]) >> 4) / 10.0 - 40.0
+        return (
+            ((ord(data_read[1]) >> 4) * 10)
+            + (ord(data_read[1]) & 0xF)
+            + ((ord(data_read[0]) >> 4) / 10.0)
+            - 40.0
+        )
 
     def _getDateTime(self, address):
         ""
@@ -422,7 +311,13 @@ class WS3500():
     def _getPressure(self, address):
         "Returns the pressure for the given address"
         data_read = self._read_safe(address, 3)
-        return (ord(data_read[2]) & 0xF) * 1000 + (ord(data_read[1]) >> 4) * 100 + (ord(data_read[1]) & 0xF) * 10 + (ord(data_read[0]) >> 4) + (ord(data_read[0]) & 0xF) / 10.0
+        return (
+            ((ord(data_read[2]) & 0xF) * 1000)
+            + ((ord(data_read[1]) >> 4) * 100)
+            + ((ord(data_read[1]) & 0xF) * 10)
+            + (ord(data_read[0]) >> 4)
+            + ((ord(data_read[0]) & 0xF) / 10.0)
+        )
 
     def tendency(self):
         "Returns tendency"
@@ -442,20 +337,20 @@ class WS3500():
     def recording_interval(self):
         "Returns recording interval, in minutes"
         ADDR_RECORD_INT = 0xE3
-        duree = {0 : 1, # 1 min
-                 1 : 5, # 5 min
-                 2 : 10, # 10 min
-                 3 : 15, # 15 min
-                 4 : 20, # 20 min
-                 5 : 30, # 30 min
-                 6 : 60, # 1 hour
-                 7 : 120, # 2 hours
-                 8 : 180, # 3 hours
-                 9 : 240, # 4 hours
-                 0xa : 360, # 6 hours
-                 0xb : 480, # 8 hours
-                 0xc : 720, # 12 hours
-                 0xd : 1440} # 24 hours
+        duree = {0: 1,  # 1 min
+                 1: 5,  # 5 min
+                 2: 10,  # 10 min
+                 3: 15,  # 15 min
+                 4: 20,  # 20 min
+                 5: 30,  # 30 min
+                 6: 60,  # 1 hour
+                 7: 120,  # 2 hours
+                 8: 180,  # 3 hours
+                 9: 240,  # 4 hours
+                 0xa: 360,  # 6 hours
+                 0xb: 480,  # 8 hours
+                 0xc: 720,  # 12 hours
+                 0xd: 1440}  # 24 hours
         data_read = self._read_safe(ADDR_RECORD_INT, 1)
         return duree[ord(data_read[0]) >> 4]
 
