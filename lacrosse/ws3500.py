@@ -242,7 +242,7 @@ class WS3500():
     def _write_byte(self, byte, tab=0):
         self.logger.debug("_write_byte({b})".format(b=byte))
         for i in range(8):
-            self._write_bit(byte & 0x80, tab=tab+1)
+            self._write_bit(int(byte) & 0x80, tab=tab+1)
             byte <<= 1
             byte &= 0xff
 
