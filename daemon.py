@@ -6,6 +6,8 @@ import serial
 import logging
 import threading
 import time
+import traceback
+import sys
 
 from lacrosse import WS3500
 
@@ -202,6 +204,11 @@ class ws3500_fetcher(threading.Thread):
                 self.ws = None
                 lasterror = pf(e)
                 lastdata = None
+
+                print("-"*60)
+                traceback.print_exc(file=sys.stdout)
+                print("-"*60)
+
                 time.sleep(5)
 
         self.logger.info("[fetcher] exiting thread")
