@@ -73,33 +73,6 @@ def metrics():
     global lastdata, lasterror, logger, device
 
     res = ""
-    # if not asyncmode:
-    #     try:
-    #         lasterror = None
-    #         ser = serial.Serial(
-    #             baudrate=300,
-    #             port=device,
-    #             bytesize=serial.EIGHTBITS,
-    #             parity=serial.PARITY_NONE,
-    #             stopbits=serial.STOPBITS_ONE,
-    #             timeout=None, writeTimeout=None,
-    #             interCharTimeout=None,
-    #             rtscts=0,
-    #             dsrdtr=None,
-    #             xonxoff=0
-    #         )
-    #         # ser.open()
-    #         ws = WS3500(ser)
-    #         lastdata = single_fetch(ws)
-    #
-    #     except Exception as e:
-    #         logger.warning("[fetcher] exception catched, cleaning data")
-    #         logger.warning(pf(e))
-    #         lasterror = pf(e)
-    #         lastdata = None
-    #
-    #     # try:
-    #     #     ser.close()
 
     if lastdata is not None:
         for k in lastdata:
