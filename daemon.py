@@ -1,44 +1,56 @@
-#! /usr/bin/env python2
+#! /usr/bin/env python3
 ###############################################################################
 from flask import Flask, Response, redirect, render_template
 from optparse import OptionParser
 import serial
-import atexit
 import logging
 import threading
 import time
-import sys
 
 from lacrosse import WS3500
 
-from pprint import pprint as pp
+# from pprint import pprint as pp
 from pprint import pformat as pf
 
 ###############################################################################
 # globals
-
 app = Flask("WS3500")
 ser = None
 run = True
 lastdata = None
 lasterror = None
-asyncmode = True
 logger = None
 device = None
 
 template = {
-    "ws3500_external_temp":    {"help": "External Temperature", "type": "gauge", "value": ""},
-    "ws3500_external_humidity": {"help": "External Humidity",    "type": "gauge", "value": ""},
-    "ws3500_internal_temp":    {"help": "Internal Temperature", "type": "gauge", "value": ""},
-    "ws3500_internal_humidity": {"help": "Internal Humitidy",    "type": "gauge", "value": ""},
-    "ws3500_dewpoint":         {"help": "Dew Point",            "type": "gauge", "value": ""},
-    "ws3500_pressure":         {"help": "Pressure",             "type": "gauge", "value": ""},
-    "ws3500_fetch_duration":   {"help": "Time taken to fetch data",                            "type": "gauge", "value": ""},
-    "ws3500_fetch_time":       {"help": "Timestamp when data was fetched",                     "type": "gauge", "value": ""},
-    "ws3500_retries_count":    {"help": "Number of retries",                                   "type": "gauge", "value": ""},
-    "ws3500_fails_differ_count": {"help": "Number of read failed due to differents values",    "type": "gauge", "value": ""},
-    "ws3500_fails_zeroes_count": {"help": "Number of read failed due to only zeroes returned", "type": "gauge", "value": ""},
-    "ws3500_fails_ones_count": {"help": "Number of read failed due to only ones returned",     "type": "gauge", "value": ""}
+    "ws3500_external_temp": {
+        "help": "External Temperature", "type": "gauge", "value": ""},
+    "ws3500_external_humidity": {
+        "help": "External Humidity", "type": "gauge", "value": ""},
+    "ws3500_internal_temp": {
+        "help": "Internal Temperature", "type": "gauge", "value": ""},
+    "ws3500_internal_humidity": {
+        "help": "Internal Humitidy", "type": "gauge", "value": ""},
+    "ws3500_dewpoint": {
+        "help": "Dew Point", "type": "gauge", "value": ""},
+    "ws3500_pressure": {
+        "help": "Pressure", "type": "gauge", "value": ""},
+    "ws3500_fetch_duration": {
+        "help": "Time taken to fetch data", "type": "gauge", "value": ""},
+    "ws3500_fetch_time": {
+        "help": "Timestamp when data was fetched",
+        "type": "gauge", "value": ""},
+    "ws3500_retries_count": {
+        "help": "Number of retries", "type": "gauge", "value": ""},
+    "ws3500_fails_differ_count": {
+        "help": "Number of read failed due to differents values",
+        "type": "gauge", "value": ""},
+    "ws3500_fails_zeroes_count": {
+        "help": "Number of read failed due to only zeroes returned",
+        "type": "gauge", "value": ""},
+    "ws3500_fails_ones_count": {
+        "help": "Number of read failed due to only ones returned",
+        "type": "gauge", "value": ""}
 }
 
 ###############################################################################
@@ -56,36 +68,36 @@ def root():
 @app.route("/metrics")
 def metrics():
     "Returns prometheus data (as text/plain)"
-    global lastdata, lasterror, asyncmode, logger, device
+    global lastdata, lasterror, logger, device
 
     res = ""
-    if not asyncmode:
-        try:
-            lasterror = None
-            ser = serial.Serial(
-                baudrate=300,
-                port=device,
-                bytesize=serial.EIGHTBITS,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                timeout=None, writeTimeout=None,
-                interCharTimeout=None,
-                rtscts=0,
-                dsrdtr=None,
-                xonxoff=0
-            )
-            # ser.open()
-            ws = WS3500(ser)
-            lastdata = single_fetch(ws)
-
-        except Exception, e:
-            logger.warning("[fetcher] exception catched, cleaning data")
-            logger.warning(pf(e))
-            lasterror = pf(e)
-            lastdata = None
-
-        # try:
-        #     ser.close()
+    # if not asyncmode:
+    #     try:
+    #         lasterror = None
+    #         ser = serial.Serial(
+    #             baudrate=300,
+    #             port=device,
+    #             bytesize=serial.EIGHTBITS,
+    #             parity=serial.PARITY_NONE,
+    #             stopbits=serial.STOPBITS_ONE,
+    #             timeout=None, writeTimeout=None,
+    #             interCharTimeout=None,
+    #             rtscts=0,
+    #             dsrdtr=None,
+    #             xonxoff=0
+    #         )
+    #         # ser.open()
+    #         ws = WS3500(ser)
+    #         lastdata = single_fetch(ws)
+    #
+    #     except Exception as e:
+    #         logger.warning("[fetcher] exception catched, cleaning data")
+    #         logger.warning(pf(e))
+    #         lasterror = pf(e)
+    #         lastdata = None
+    #
+    #     # try:
+    #     #     ser.close()
 
     if lastdata is not None:
         for k in lastdata:
@@ -100,13 +112,7 @@ def status():
     "Returns status.html rendered template"
     global lastdata, lasterror
 
-    if asyncmode:
-        data = lastdata
-        # error = lasterror
-    else:
-        data = XXXX
-
-    return render_template('status.html.j2', data=data, error=lasterror)
+    return render_template('status.html.j2', data=lastdata, error=lasterror)
 
 
 ###############################################################################
@@ -188,7 +194,7 @@ class ws3500_fetcher(threading.Thread):
                 lastdata = single_fetch(self.ws)
                 time.sleep(5)
 
-            except Exception, e:
+            except Exception as e:
                 self.logger.warning(
                     "[fetcher] exception catched, cleaning data")
                 self.logger.warning(pf(e))
@@ -206,8 +212,6 @@ class ws3500_fetcher(threading.Thread):
 ###############################################################################
 if __name__ == "__main__":
 
-    global asyncmode, logger, device
-
     parser = OptionParser()
 
     parser.add_option(
@@ -222,12 +226,12 @@ if __name__ == "__main__":
         "-H", "--host", dest="HOST", default="127.0.0.1",
         help="Listen host (default is 127.0.0.1)")
 
-    parser.add_option(
-        "--async", action="store_true", dest="ASYNC",
-        help="Operate in asynchronous mode (data fetch in background)")
-    parser.add_option(
-        "--sync", action="store_false", dest="ASYNC",
-        help="Operate in synchronous mode (data fetch in foreground)")
+    # parser.add_option(
+    #     "--async", action="store_true", dest="ASYNC",
+    #     help="Operate in asynchronous mode (data fetch in background)")
+    # parser.add_option(
+    #     "--sync", action="store_false", dest="ASYNC",
+    #     help="Operate in synchronous mode (data fetch in foreground)")
 
     (options, args) = parser.parse_args()
 
@@ -239,13 +243,8 @@ if __name__ == "__main__":
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
-    asyncmo = options.ASYNC
-
-    if asyncmo:
-        f = ws3500_fetcher(
-            "ws3500-fetcher", device=options.DEVICE, logger=logger)
-        f.start()
-    else:
-        device = options.DEVICE
+    f = ws3500_fetcher(
+        "ws3500-fetcher", device=options.DEVICE, logger=logger)
+    f.start()
 
     app.run(host=options.HOST, port=options.PORT)

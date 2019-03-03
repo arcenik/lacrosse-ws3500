@@ -11,4 +11,4 @@ ENV PORT 5000
 
 COPY . /opt/app
 
-CMD ["bash", "-cx", "python2 daemon.py --host ${HOST} --port ${PORT}"]
+CMD ["bash", "-cx", "python3 daemon.py --host ${HOST} --port ${PORT}"]
