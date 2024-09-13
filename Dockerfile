@@ -1,4 +1,4 @@
-FROM python:3.7-stretch
+FROM python:3.12.6-slim-bookworm
 
 RUN mkdir -vp /opt/app
 WORKDIR /opt/app
