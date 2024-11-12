@@ -1,0 +1,9 @@
+[MESSAGES CONTROL]
+
+disable =
+  invalid-name,
+  missing-function-docstring,
+  missing-module-docstring,
+  missing-class-docstring,
+  too-many-public-methods,
+max-args = 6
