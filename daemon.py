@@ -97,8 +97,7 @@ def single_fetch(ws):
 
     """
 
-    ws._init = False
-    ws._initialize()
+    ws.initialize()
 
     newdata = TEMPLATE
     t1 = time.time()

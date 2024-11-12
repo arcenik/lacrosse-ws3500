@@ -19,11 +19,11 @@ class WS3500():
 
     def __init__(self, ser, logger=None):
         self.ser = ser
-        self._init = False
 
         self.count_failed_differs = 0
         self.count_failed_zeroes = 0
         self.count_failed_ones = 0
+        self.count_retries = 0
 
         if logger is None:
             self.logger = logging.getLogger('WS3500')
@@ -83,7 +83,6 @@ class WS3500():
         self.ser.write(buff.encode())
         self.logger.info('initialize() second write(buf) completed')
 
-        self._init = True
         self.logger.info('initialize() succeeded')
         return 1
 
@@ -96,13 +95,12 @@ class WS3500():
         self.count_failed_ones = 0
         for j in range(MAXRETRIES):
             self.count_retries = j
-            # self._init = False
-            # self._initialize()
-            self._write_data(address, 0, None, tab=1)
-            readdata = self._read_data(number, tab=1)
+            # self.initialize()
+            self._write_data(address, 0, None)
+            readdata = self._read_data(number)
 
-            self._write_data(address, 0, None, tab=1)
-            readdata2 = self._read_data(number, tab=1)
+            self._write_data(address, 0, None)
+            readdata2 = self._read_data(number)
 
             if readdata == readdata2:
                 if readdata == chr(0) * number or readdata == '':
@@ -121,7 +119,6 @@ class WS3500():
                 self.logger.warning('_read_safe : not identical, try again')
                 self.count_failed_differs += 1
 
-            self._init = False
             self.initialize()
 
         if j == MAXRETRIES:
@@ -129,19 +126,19 @@ class WS3500():
 
         return readdata
 
-    def _read_data(self, number, tab=0):
+    def _read_data(self, number):
         self.logger.debug("_read_data(%s)", number)
         command = 0xa1
         readdata = ''
 
-        if self._write_byte(command, tab=tab+1):
+        if self._write_byte(command):
             for i in range(number):
-                b = self._read_byte(tab=tab+1)
+                b = self._read_byte()
                 readdata = readdata + chr(b)
                 if i + 1 < number:
-                    self._read_next_byte_seq(tab=tab+1)
+                    self._read_next_byte_seq()
 
-            self._read_last_byte_seq(tab=tab+1)
+            self._read_last_byte_seq()
 
             self.logger.info("_read_data : %s",string2hex(readdata))
 
@@ -150,18 +147,18 @@ class WS3500():
         self.logger.warning('_read_data : write error')
         return ''
 
-    def _write_data(self, address, number, writedata, tab=0):
+    def _write_data(self, address, number, writedata):
         self.logger.info("_write_data(%s,%s)", address, number)
         command = 0xa0
         i = -1
 
-        self._write_byte(command, tab=tab+1)
-        self._write_byte(address/256, tab=tab+1)
-        self._write_byte(address % 256, tab=tab+1)
+        self._write_byte(command)
+        self._write_byte(address/256)
+        self._write_byte(address % 256)
 
         if writedata is not None:
             for i in range(number):
-                self._write_byte(ord(writedata[i]), tab=tab+1)
+                self._write_byte(ord(writedata[i]))
 
         self.logger.debug('-DTR')
         self.ser.setDTR(0)
@@ -176,13 +173,13 @@ class WS3500():
 
         return i
 
-    def _read_next_byte_seq(self, tab=0):
+    def _read_next_byte_seq(self):
         self.logger.debug('_read_next_byte_seq()')
         self._write_bit(0)
         self.logger.debug('-RTS')
         self.ser.setRTS(0)
 
-    def _read_last_byte_seq(self, tab=0):
+    def _read_last_byte_seq(self):
         self.logger.info('_read_last_byte_seq()')
         self.logger.debug('+RTS')
         self.ser.setRTS(1)
@@ -197,22 +194,21 @@ class WS3500():
         self.logger.debug('-RTS')
         self.ser.setRTS(0)
 
-    def _read_bit(self, tab=0):
+    def _read_bit(self):
         self.logger.debug('_read_bit()')
         self.logger.debug('-DTR')
         self.ser.setDTR(0)
         status = self.ser.getCTS()
-        self.logger.debug("CTS -> {s}".format(s=str(status)))
+        self.logger.debug("CTS -> %s", str(status))
         self.logger.debug('+DTR')
         self.ser.setDTR(1)
 
-        self.logger.debug(
-            "_read_bit result {res:d}".format(res=int(not status)))
+        self.logger.debug("_read_bit result %d", int(not status))
 
         return int(not status)
 
-    def _write_bit(self, bit, tab=0):
-        self.logger.debug("_write_bit({b})".format(b=bit))
+    def _write_bit(self, bit):
+        self.logger.debug("_write_bit(%s)", bit)
         if bit:
             self.logger.debug('-RTS')
             self.ser.setRTS(0)
@@ -224,40 +220,38 @@ class WS3500():
         self.logger.debug('+DTR')
         self.ser.setDTR(1)
 
-    def _read_byte(self, tab=0):
+    def _read_byte(self):
         self.logger.debug('_read_byte()')
         byte = 0
 
-        for i in range(8):
+        for _ in range(8):
             byte *= 2
-            byte += self._read_bit(tab=tab+1)
+            byte += self._read_bit()
 
-        self.logger.debug(
-            "_read_byte result {d} ({h})".format(d=byte, h=hex(byte)))
+        self.logger.debug("_read_byte result %s (%s)", byte, hex(byte))
 
         return byte
 
-    def _write_byte(self, byte, tab=0):
-        self.logger.debug("_write_byte({b})".format(b=byte))
+    def _write_byte(self, byte):
+        self.logger.debug("_write_byte(%s)", byte)
         byte = int(byte)
-        for i in range(8):
-            self._write_bit(byte & 0x80, tab=tab+1)
+        for _ in range(8):
+            self._write_bit(byte & 0x80)
             byte <<= 1
             byte &= 0xff
 
         self.logger.debug('-RTS')
         self.ser.setRTS(0)
         status = self.ser.getCTS()
-        self.logger.debug("CTS return {s}".format(s=str(status)))
+        self.logger.debug("CTS return %s", str(status))
         self.logger.debug('-DTR')
         self.ser.setDTR(0)
         self.logger.debug('+DTR')
         self.ser.setDTR(1)
-        self.logger.debug("status {s}".format(s=int(status)))
+        self.logger.debug("status %s", int(status))
         if status:
             return 1
-        else:
-            return 0
+        return 0
 
     def _get_temp(self, address):
         # 12.3 -> [1] 0x....1111 [0] 0x22223333
