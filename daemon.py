@@ -209,7 +209,7 @@ if __name__ == '__main__':
     #     '--sync', action='store_false', dest='ASYNC',
     #     help='Operate in synchronous mode (data fetch in foreground)')
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
     LOGGER = logging.getLogger('WS3500')
     LOGGER.setLevel(logging.INFO)  # DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -220,7 +220,7 @@ if __name__ == '__main__':
     LOGGER.addHandler(handler)
 
     f = Ws3500Fetcher(
-        'ws3500-fetcher', device=options.DEVICE, logger=LOGGER)
+        'ws3500-fetcher', device=args.DEVICE, logger=LOGGER)
     f.start()
 
-    APP.run(host=options.HOST, port=options.PORT)
+    APP.run(host=args.HOST, port=args.PORT)

@@ -46,7 +46,7 @@ if __name__ == '__main__':
                       help='Device to access serial port',
                       default='/dev/ttyUSB0')
 
-    (options, args) = parser.parse_args()
+    args = parser.parse_args()
 
     logger = logging.getLogger('WS3500')
     logger.setLevel(logging.ERROR)  # DEBUG, INFO, WARNING, ERROR, CRITICAL
@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
     ser = serial.Serial(
         baudrate=300,
-        port=options.DEVICE,
+        port=args.DEVICE,
         bytesize=serial.EIGHTBITS,
         parity=serial.PARITY_NONE,
         stopbits=serial.STOPBITS_ONE,
