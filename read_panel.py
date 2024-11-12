@@ -72,6 +72,4 @@ if __name__ == '__main__':
     logger.info('serial port opened')
     atexit.register(close_serial, ser)
 
-    ws = WS3500(ser, logger=logger)
-
-    dump_all(ws)
+    dump_all(WS3500(ser, logger=logger))

@@ -1,0 +1,8 @@
+[MESSAGES CONTROL]
+
+disable =
+  invalid-name,
+  missing-function-docstring,
+  missing-module-docstring,
+  missing-class-docstring,
+max-args = 6

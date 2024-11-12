@@ -7,8 +7,8 @@ import traceback
 import sys
 from pprint import pformat as pf
 
-from flask import Flask, Response, redirect, render_template
 from optparse import OptionParser
+from flask import Flask, Response, redirect, render_template
 import serial
 
 from lacrosse import WS3500

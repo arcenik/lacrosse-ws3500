@@ -1,5 +1,5 @@
-import time
 import logging
+import time
 
 DELAY_CONST = 0.001
 MAXRETRIES = 10
@@ -276,24 +276,22 @@ class WS3500():
     def _get_date_time(self, address):
         ""
         data_read = self._read_safe(address, 6)
-        return "{a:04d}-{m:02d}-{j:02d} {h:02d}:{mi:02d}".format(
-            a=2000 + (ord(data_read[4]) >> 4) + (ord(data_read[5]) & 0xF) * 10,
-            m=(ord(data_read[3]) >> 4) + (ord(data_read[4]) & 0xF) * 10,
-            j=(ord(data_read[2]) >> 4) + (ord(data_read[3]) & 0xF) * 10,
-            h=(ord(data_read[1]) >> 4) + (ord(data_read[2]) & 0xF) * 10,
-            mi=(ord(data_read[0]) >> 4) + (ord(data_read[1]) & 0xF) * 10
-        )
+        year = 2000 + (ord(data_read[4]) >> 4) + (ord(data_read[5]) & 0xF) * 10
+        month = (ord(data_read[3]) >> 4) + (ord(data_read[4]) & 0xF) * 10
+        day = (ord(data_read[2]) >> 4) + (ord(data_read[3]) & 0xF) * 10
+        hour = (ord(data_read[1]) >> 4) + (ord(data_read[2]) & 0xF) * 10
+        minute = (ord(data_read[0]) >> 4) + (ord(data_read[1]) & 0xF) * 10
+        return f"{year:04d}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}"
 
     def _get_date_time2(self, address):
         ""
         data_read = self._read_safe(address, 5)
-        return "{a:04d}-{m:02d}-{j:02d} {h:02d}:{mi:02d}".format(
-            a=2000 + (ord(data_read[4]) >> 4) * 10 + (ord(data_read[4]) & 0xF),
-            m=(ord(data_read[3]) >> 4) * 10 + (ord(data_read[3]) & 0xF),
-            j=(ord(data_read[2]) >> 4) * 10 + (ord(data_read[2]) & 0xF),
-            h=(ord(data_read[1]) >> 4) * 10 + (ord(data_read[1]) & 0xF),
-            mi=(ord(data_read[0]) >> 4) * 10 + (ord(data_read[0]) & 0xF)
-        )
+        year = 2000 + (ord(data_read[4]) >> 4) * 10 + (ord(data_read[4]) & 0xF)
+        month = (ord(data_read[3]) >> 4) * 10 + (ord(data_read[3]) & 0xF)
+        day = (ord(data_read[2]) >> 4) * 10 + (ord(data_read[2]) & 0xF)
+        hour = (ord(data_read[1]) >> 4) * 10 + (ord(data_read[1]) & 0xF)
+        minute = (ord(data_read[0]) >> 4) * 10 + (ord(data_read[0]) & 0xF)
+        return f"{year:04d}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}"
 
     def _get_humidity(self, address):
         "Returns the humitidy at the given address`"
