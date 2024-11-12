@@ -3,7 +3,7 @@
 import atexit
 import logging
 
-from optparse import OptionParser
+import argparse
 import serial
 
 from lacrosse import WS3500
@@ -40,9 +40,9 @@ def close_serial(s):
 ###############################################################################
 if __name__ == '__main__':
 
-    parser = OptionParser()
+    parser = argparse.ArgumentParser(prog='read_pannel.py', description='WS3500 pannel reader')
 
-    parser.add_option('-d', '--device', dest='DEVICE',
+    parser.add_argument('-d', '--device', dest='DEVICE',
                       help='Device to access serial port',
                       default='/dev/ttyUSB0')
 

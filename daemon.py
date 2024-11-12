@@ -7,7 +7,7 @@ import traceback
 import sys
 from pprint import pformat as pf
 
-from optparse import OptionParser
+import argparse
 from flask import Flask, Response, redirect, render_template
 import serial
 
@@ -138,14 +138,14 @@ class Ws3500Fetcher(threading.Thread):
 
         global LASTDATA, LASTERROR
 
-        self.logger.info("[fetcher] starting thread")
+        self.logger.info('[fetcher] starting thread')
         while RUN:
             try:
 
                 LASTERROR = None
 
                 if not self.ws:
-                    self.logger.info("[fetcher] opening device")
+                    self.logger.info('[fetcher] opening device')
                     self.ser = serial.Serial(
                         baudrate=300, port=self.device,
                         bytesize=serial.EIGHTBITS,
@@ -167,7 +167,7 @@ class Ws3500Fetcher(threading.Thread):
 
             except Exception as e:
                 self.logger.warning(
-                    "[fetcher] exception catched, cleaning data")
+                    '[fetcher] exception catched, cleaning data')
                 self.logger.warning(pf(e))
                 self.ser = None
                 self.ws = None
@@ -180,7 +180,7 @@ class Ws3500Fetcher(threading.Thread):
 
                 time.sleep(5)
 
-        self.logger.info("[fetcher] exiting thread")
+        self.logger.info('[fetcher] exiting thread')
 
 
 ###############################################################################
@@ -188,24 +188,24 @@ class Ws3500Fetcher(threading.Thread):
 ###############################################################################
 if __name__ == '__main__':
 
-    parser = OptionParser()
+    parser = argparse.ArgumentParser(prog='daemon.py', description='WS3500 deamon')
 
-    parser.add_option(
+    parser.add_argument(
         '-d', '--device', dest='DEVICE', default='/dev/ttyUSB0',
         help='Device to access serial port')
 
-    parser.add_option(
+    parser.add_argument(
         '-P', '--port', dest='PORT', default='5000',
         help='Listen port (listen is 5000)')
 
-    parser.add_option(
+    parser.add_argument(
         '-H', '--host', dest='HOST', default='127.0.0.1',
         help='Listen host (default is 127.0.0.1)')
 
-    # parser.add_option(
+    # parser.add_argument(
     #     '--async', action='store_true', dest='ASYNC',
     #     help='Operate in asynchronous mode (data fetch in background)')
-    # parser.add_option(
+    # parser.add_argument(
     #     '--sync', action='store_false', dest='ASYNC',
     #     help='Operate in synchronous mode (data fetch in foreground)')
 
